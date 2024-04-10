@@ -15,7 +15,8 @@ from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, SUPPORT_CHAT_ID, CUSTOM_FILE_
     NO_RESULTS_MSG, IS_VERIFY, HOW_TO_VERIFY
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
-from pyrogram.errors import UserIsBlocked, MessageNotModified, PeerIdInvalid
+from random import choice
+from pyrogram.errors import UserIsBlocked, MessageNotModified, PeerIdInvalid, MessageIdInvalid, ChatAdminRequired, EmoticonInvalid, ReactionInvalid
 from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings, get_shortlink, send_all, check_verification, get_token
 from database.users_chats_db import db
 from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files, db as clientDB, db2 as clientDB2
@@ -40,8 +41,16 @@ REACTIONS = ["🔥", "❤️", "😍", "⚡"]
 
 @Client.on_message((filters.group | filters.private) & filters.text & filters.incoming)
 async def give_filter(client, message):
-    await message.react(emoji=random.choice(REACTIONS))
     if message.chat.id != SUPPORT_CHAT_ID:
+        try:
+            await message.react(emoji=random.choice(REACTIONS))
+        except (
+            MessageIdInvalid,
+            EmoticonInvalid,
+            ChatAdminRequired,
+            ReactionInvalid
+        ):
+            pass
         glob = await global_filters(client, message)
         if glob == False:
             manual = await manual_filters(client, message)
